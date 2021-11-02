@@ -32,6 +32,11 @@
   }
 
   @include breakpoint(xl) {
+    max-width: 1140px;
+    padding: 0 15px;
+  }
+
+  @include breakpoint(xxl) {
     max-width: 1520px;
     padding: 0 15px;
   }
