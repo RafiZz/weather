@@ -1,0 +1,16 @@
+$breakpoints: (
+  xs: 360,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1200,
+);
+
+$colors: (
+  /* buttons */
+  button-primary: #9b51e0,
+  button-disabled: #c1c1c1,
+  /* text */
+  text-primary: #1b1b1b,
+  text-secondary: #767676,
+);

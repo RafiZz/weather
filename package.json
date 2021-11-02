@@ -5,11 +5,28 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lint:css": "stylelint src/**/*.{html,vue,css,sass,scss,less}"
+  },
+  "lint-staged": {
+    "*.{js,vue}": [
+      "npm run lint"
+    ],
+    "*.{html,vue,css,sass,scss,less}": [
+      "npm run lint:css"
+    ]
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
   },
   "dependencies": {
+    "axios": "^0.24.0",
     "core-js": "^3.6.5",
-    "vue": "^2.6.11"
+    "i18n-iso-countries": "^6.8.0",
+    "luxon": "^2.0.2",
+    "normalize.css": "^8.0.1",
+    "vue": "^2.6.11",
+    "vuelidate": "^0.7.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -23,8 +40,14 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
     "eslint-plugin-vue": "^6.2.2",
+    "lint-staged": "^11.2.6",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
+    "stylelint": "13.13.1",
+    "stylelint-config-recess-order": "^2.5.0",
+    "stylelint-config-standard": "22.0.0",
+    "stylelint-scss": "3.21.0",
+    "stylelint-webpack-plugin": "2.2.2",
     "vue-template-compiler": "^2.6.11"
   }
 }
