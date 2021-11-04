@@ -1,56 +1,68 @@
 <template>
   <section class="location">
-    <h4 class="location__title">Watch weather in your current location</h4>
-    <CityItem
-      :title="title"
-      :subtitle="subtitle"
-      :weather="weather"
-      :temp="temp"
-      :humidity="humidity"
-      :updated-at-millis="updatedAtMillis"
-      :loading="loading"
-    >
-      <template v-slot:actions="{ loading }">
-        <div class="location-actions">
-          <BaseButton @click="onReload" :loading="loading" :disabled="loading">
-            <span>RELOAD</span>
-          </BaseButton>
+    <CardWrapper>
+      <h4 class="location__title">Watch weather in your current location</h4>
+      <CityItem
+        v-if="city"
+        :title="`${city.name}, ${city.countryCode.toUpperCase()}`"
+        subtitle="Your current location"
+        :weather="city.weather"
+        :temp="city.temp"
+        :humidity="city.humidity"
+        :updated-at-millis="city.updatedAtMillis"
+        :loading="loading"
+      >
+        <template v-slot:actions="{ loading }">
+          <div v-if="error" class="location-status">
+            <div class="location-status__text location-status__text_error">
+              Error: {{ error }}
+            </div>
+          </div>
+
+          <div class="location-actions">
+            <BaseButton @click="onReload" :loading="loading" :disabled="loading">
+              <span>RELOAD</span>
+            </BaseButton>
+          </div>
+        </template>
+      </CityItem>
+      <div v-else-if="loading" class="location-status">
+        <div class="location-status__text">
+          Loading
         </div>
-      </template>
-    </CityItem>
+      </div>
+      <div v-else-if="error" class="location-status">
+        <div class="location-status__text location-status__text_error">
+          Error: {{ error }}
+        </div>
+      </div>
+    </CardWrapper>
   </section>
 </template>
 
 <script>
+import CardWrapper from './CardWrapper.vue'
 import CityItem from './CityItem.vue'
 import BaseButton from './BaseButton.vue'
+import { CityHelper } from '../utils/cityHelper'
 
 export default {
   name: 'LocationCityItem',
   props: {
-    title: {
+    city: {
+      type: Object,
+      validator: (value) => {
+        try {
+          CityHelper.validateCityObject(value || {})
+          return true
+        } catch {
+          return false
+        }
+      }
+    },
+    error: {
       type: String,
-      required: true
-    },
-    subtitle: {
-      type: String,
-      required: true
-    },
-    weather: {
-      type: String,
-      required: true
-    },
-    temp: {
-      type: [String, Number],
-      required: true
-    },
-    humidity: {
-      type: [String, Number],
-      required: true
-    },
-    updatedAtMillis: {
-      type: Number,
-      required: true
+      required: false
     },
     loading: {
       type: Boolean,
@@ -58,6 +70,7 @@ export default {
     }
   },
   components: {
+    CardWrapper,
     CityItem,
     BaseButton
   },
@@ -86,10 +99,22 @@ export default {
     line-height: 24px;
     color: map-get($colors, text-secondary);
   }
-}
 
-.location-actions {
-  display: flex;
-  justify-content: flex-end;
+  &-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &-status {
+    margin-top: 20px;
+
+    &__text {
+      text-align: left;
+
+      &_error {
+        color: map-get($colors, text-error);
+      }
+    }
+  }
 }
 </style>

@@ -85,13 +85,6 @@ export default {
       })
     }
   },
-  watch: {
-    updatedAtMillis () {
-      this.updateCurrentDate()
-      this.clearDurationUpdateInterval()
-      this.setDurationUpdateInterval()
-    }
-  },
   mounted () {
     this.setDurationUpdateInterval()
   },
@@ -108,6 +101,13 @@ export default {
     updateCurrentDate () {
       this.currentDate = Date.now()
     }
+  },
+  watch: {
+    updatedAtMillis () {
+      this.updateCurrentDate()
+      this.clearDurationUpdateInterval()
+      this.setDurationUpdateInterval()
+    }
   }
 }
 </script>
@@ -116,13 +116,9 @@ export default {
 .city-item {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 24px;
-  border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(10, 10, 10, 0.25);
 
   &__title {
-    margin: 0 0 auto 0;
+    margin: 0;
     font-size: 32px;
     font-style: normal;
     font-weight: bold;

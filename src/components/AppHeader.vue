@@ -15,6 +15,8 @@ export default {
   margin-top: 24px;
   margin-bottom: 32px;
 
+  @include container();
+
   &__text {
     margin: 0;
     font-size: 70px;

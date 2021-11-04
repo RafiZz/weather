@@ -1,24 +1,24 @@
 <template>
-  <div class="city-form-wrapper">
+  <CardWrapper class="city-form-wrapper">
     <div class="city-form-wrapper__title">Choose a city</div>
     <div class="city-form-wrapper__subtitle">
       Type city name
       <!-- To find city start typing and pick one from the suggestions -->
     </div>
-    <form class="city-from" @submit.prevent="onSubmit">
+    <form class="city-form" @submit.prevent="onSubmit">
       <BaseInput
-        v-model.trim="$v.cityName.$model"
+        v-model.trim="$v.formData.cityName.$model"
         placeholder="Search city"
-        :error="cityNameError"
-        @blur="$v.cityName.$touch"
+        :error="cityNameError || error"
         :autofocus="true"
+        @blur="$v.formData.cityName.$touch"
       />
       <div class="city-form-actions">
         <BaseButton
           type="button"
           class="city-form__btn city-form__btn_clear"
+          :disabled="!formData.cityName"
           @click="onClear"
-          :disabled="!cityName"
         >
           CLEAR
         </BaseButton>
@@ -31,19 +31,21 @@
         </BaseButton>
         <BaseButton
           type="submit"
+          :loading="loading"
           :disabled="isAddButtonDisabled"
         >
           ADD
         </BaseButton>
       </div>
     </form>
-  </div>
+  </CardWrapper>
 </template>
 
 <script>
 import { required, helpers } from 'vuelidate/lib/validators'
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
+import CardWrapper from './CardWrapper.vue'
 
 const cityNameRegex = helpers.regex('regex', /^[a-zA-Z -']*$/)
 
@@ -51,9 +53,13 @@ export default {
   name: 'CityForm',
   components: {
     BaseInput,
-    BaseButton
+    BaseButton,
+    CardWrapper
   },
   props: {
+    loading: {
+      type: Boolean
+    },
     error: {
       type: String
     },
@@ -64,43 +70,47 @@ export default {
   },
   data () {
     return {
-      cityName: ''
+      formData: {
+        cityName: ''
+      }
     }
   },
   validations: {
-    cityName: {
-      required,
-      cityNameRegex,
-      isUnique (value) {
-        if (value === '') return true
+    formData: {
+      cityName: {
+        required,
+        regex: cityNameRegex,
+        isUnique (value) {
+          if (value === '') return true
 
-        return !this.addedCities.some(cn => cn.toLowerCase() === value.toLowerCase())
+          return !this.addedCities.some(cn => cn.toLowerCase() === value.toLowerCase())
+        }
       }
     }
   },
   computed: {
     cityNameError () {
-      if (!this.$v.cityName.$error) {
+      if (!this.$v.formData.cityName.$error) {
         return ''
       }
-      if (!this.$v.cityName.required) {
+      if (!this.$v.formData.cityName.required) {
         return 'City name is required'
       }
-      if (!this.$v.cityName.regex) {
+      if (!this.$v.formData.cityName.regex) {
         return 'City name can contain only English letters'
       }
-      if (!this.$v.cityName.isUnique) {
+      if (!this.$v.formData.cityName.isUnique) {
         return 'This city already in added'
       }
       return 'Unknown error'
     },
     isAddButtonDisabled () {
-      return Boolean(this.cityNameError)
+      return this.loading || Boolean(this.cityNameError)
     }
   },
   methods: {
     onClear () {
-      this.cityName = ''
+      this.formData.cityName = ''
     },
     onCancel () {
       this.$emit('cancel')
@@ -110,7 +120,15 @@ export default {
       if (this.$v.$invalid) {
         return
       }
-      this.$emit('add', { name: this.cityName })
+      this.$emit('add', this.formData)
+    }
+  },
+  watch: {
+    formData: {
+      deep: true,
+      handler (newVal) {
+        this.$emit('formChanged', newVal)
+      }
     }
   }
 }
@@ -118,10 +136,7 @@ export default {
 
 <style lang="scss">
 .city-form-wrapper {
-  padding: 24px;
   background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(10, 10, 10, 0.25);
 
   @include breakpoint(xs) {
     min-width: calc(100% - 20px);

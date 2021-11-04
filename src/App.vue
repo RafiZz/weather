@@ -3,13 +3,8 @@
     <AppHeader />
     <main class="app-main">
       <LocationCityItem
-        v-if="locationCityWithMeta.city"
-        :title="`${locationCityWithMeta.city.name}, ${locationCityWithMeta.city.countryCode.toUpperCase()}`"
-        subtitle="Your current location"
-        :weather="locationCityWithMeta.city.weather"
-        :temp="locationCityWithMeta.city.temp"
-        :humidity="locationCityWithMeta.city.humidity"
-        :updated-at-millis="locationCityWithMeta.city.updatedAtMillis"
+        :city="locationCityWithMeta.city"
+        :error="locationCityWithMeta.error"
         :loading="locationCityWithMeta.loading"
         @reload="onReloadLocationCity"
       />
@@ -31,9 +26,12 @@
 
     <AppModal v-if="addModalShow" @close="closeAddModal">
       <CityForm
+        :added-cities="addedCitiesNames"
+        :loading="cityAddInProcess"
+        :error="cityAddError"
         @cancel="onFormCancel"
         @add="onFormSubmit"
-        :added-cities="addedCitiesNames"
+        @formChanged="onFormChanged"
       />
     </AppModal>
   </div>
@@ -64,11 +62,14 @@ export default {
     return {
       locationCityWithMeta: {
         city: null,
-        loading: false
+        loading: false,
+        error: ''
       },
+
       citiesWithMeta: [],
 
       addModalShow: false,
+      cityAddInProcess: false,
       cityAddError: ''
     }
   },
@@ -107,7 +108,7 @@ export default {
           await this._fetchLocationCityWeater()
         }
       } catch (e) {
-        this._handleError(e)
+        console.log(e)
       }
     },
     async _loadLocationCity () {
@@ -119,26 +120,27 @@ export default {
     },
     async _fetchLocationCityWeater () {
       this.locationCityWithMeta.loading = true
+      this.locationCityWithMeta.error = ''
       try {
         const { lat, lon } = await LocationHelper.getLocationCoords()
         this.locationCityWithMeta.city = await api.fetchWeatherByCoords({ lat, lon })
+      } catch (e) {
+        const msg = this._getErrorMessage(e)
+        this.locationCityWithMeta.error = msg
       } finally {
         this.locationCityWithMeta.loading = false
       }
     },
     async onReloadLocationCity () {
-      try {
-        await this._fetchLocationCityWeater()
-      } catch (e) {
-        this._handleError(e)
-      }
+      await this._fetchLocationCityWeater()
     },
     async onReloadCity (cityWithMeta) {
       cityWithMeta.loading = true
+      cityWithMeta.error = ''
       try {
         cityWithMeta.city = await api.fetchWeatherByCityName(cityWithMeta.city.name)
       } catch (e) {
-        this._handleError(e)
+        cityWithMeta.error = this._getErrorMessage(e)
       } finally {
         cityWithMeta.loading = false
       }
@@ -155,22 +157,31 @@ export default {
     },
     closeAddModal () {
       this.addModalShow = false
+      this.cityAddError = ''
+      this.cityAddInProcess = false
     },
     onFormCancel () {
       this.closeAddModal()
     },
-    async onFormSubmit ({ name }) {
+    async onFormSubmit ({ cityName }) {
+      this.cityAddInProcess = true
       try {
-        const city = await api.fetchWeatherByCityName(name)
+        const city = await api.fetchWeatherByCityName(cityName)
         this.citiesWithMeta.push({ city, loading: false })
         this.closeAddModal()
       } catch (e) {
-        this._handleError(e)
+        this.cityAddError = this._getErrorMessage(e)
+      } finally {
+        this.cityAddInProcess = false
       }
     },
-    _handleError (e) {
-      // TODO: dialog component
-      alert(e.isAxiosError && e?.response?.data?.message ? e.response.data.message : e.message)
+    onFormChanged () {
+      this.cityAddError = ''
+    },
+    _getErrorMessage (error) {
+      return error.isAxiosError && error?.response?.data?.message
+        ? error.response.data.message
+        : error.message
     }
   }
 }
@@ -185,14 +196,15 @@ export default {
   min-height: 100vh;
   color: map-get($colors, text-primary);
   text-align: center;
+  background-color: map-get($colors, background-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @include container();
 }
 
 .app-main {
   flex-grow: 1;
+
+  @include container();
 
   @include breakpoint(xxl) {
     position: relative;

@@ -46,6 +46,7 @@ export default {
 .base-input {
   &__input {
     width: 100%;
+    padding: 0;
     font-size: 24px;
     font-style: normal;
     font-weight: 500;
