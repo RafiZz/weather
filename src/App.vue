@@ -3,17 +3,16 @@
     <AppHeader />
     <main class="app-main">
       <LocationCityItem
-        v-if="locationCity"
-        :city="locationCity"
-        :loading="isLocationCityReloading"
+        v-if="locationCityWithMeta.city"
+        :city="locationCityWithMeta.city"
+        :loading="locationCityWithMeta.loading"
         @reload="onReloadLocationCity"
       />
 
       <CityList
-        :cities="cities"
-        :reloading-cities="reloadingCities"
-        @reload="onReloadCityItem"
-        @remove="onRemove"
+        :cities="citiesWithMeta"
+        @reloadCity="onReloadCity"
+        @removeCity="onRemoveCity"
       />
 
       <BaseButton
@@ -29,7 +28,7 @@
       <CityForm
         @cancel="onFormCancel"
         @add="onFormSubmit"
-        :added-cities="addedCities"
+        :added-cities="addedCitiesNames"
       />
     </AppModal>
   </div>
@@ -58,18 +57,24 @@ export default {
   },
   data () {
     return {
-      locationCity: null,
-      cities: [],
+      locationCityWithMeta: {
+        city: null,
+        loading: false
+      },
+      citiesWithMeta: [],
 
       addModalShow: false,
-      cityAddError: '',
-
-      isLocationCityReloading: false,
-      reloadingCities: []
+      cityAddError: ''
     }
   },
   computed: {
-    addedCities () {
+    locationCity () {
+      return this.locationCityWithMeta.city
+    },
+    cities () {
+      return this.citiesWithMeta.map(({ city }) => city)
+    },
+    addedCitiesNames () {
       return this.cities.map(c => c.name)
     }
   },
@@ -93,7 +98,7 @@ export default {
           this._loadCities()
         ])
 
-        if (!this.locationCity) {
+        if (!this.locationCityWithMeta.city) {
           await this._fetchLocationCityWeater()
         }
       } catch (e) {
@@ -101,27 +106,19 @@ export default {
       }
     },
     async _loadLocationCity () {
-      this.locationCity = await db.getLocationCity()
+      this.locationCityWithMeta.city = await db.getLocationCity()
     },
     async _loadCities () {
-      this.cities = await db.getCities()
+      const cities = await db.getCities()
+      this.citiesWithMeta = cities.map(city => ({ city, loading: false }))
     },
     async _fetchLocationCityWeater () {
-      this.isLocationCityReloading = true
+      this.locationCityWithMeta.loading = true
       try {
         const { lat, lon } = await LocationHelper.getLocationCoords()
-        this.locationCity = await api.fetchWeatherByCoords({ lat, lon })
+        this.locationCityWithMeta.city = await api.fetchWeatherByCoords({ lat, lon })
       } finally {
-        this.isLocationCityReloading = false
-      }
-    },
-    async _fetchCityWeatherByName (cityName) {
-      const index = this.reloadingCities.push(cityName.toLowerCase()) - 1
-      try {
-        const city = await api.fetchWeatherByCityName(cityName)
-        return city
-      } finally {
-        this.reloadingCities.splice(index, 1)
+        this.locationCityWithMeta.loading = false
       }
     },
     async onReloadLocationCity () {
@@ -131,19 +128,22 @@ export default {
         this._handleError(e)
       }
     },
-    async onReloadCityItem (city) {
+    async onReloadCity (cityWithMeta) {
+      cityWithMeta.loading = true
       try {
-        const updatedCity = await this._fetchCityWeatherByName(city.name)
-        const index = this.cities.findIndex(c => c.name === city.name)
-        if (index !== -1) {
-          this.cities.splice(index, 1, updatedCity)
-        }
+        cityWithMeta.city = await api.fetchWeatherByCityName(cityWithMeta.city.name)
       } catch (e) {
         this._handleError(e)
+      } finally {
+        cityWithMeta.loading = false
       }
     },
-    onRemove (city) {
-      this.cities.splice(this.cities.findIndex(c => c.name === city.name), 1)
+    onRemoveCity (cityWithMeta) {
+      const index = this.citiesWithMeta.indexOf(cityWithMeta)
+      if (index === -1) {
+        return
+      }
+      this.citiesWithMeta.splice(index, 1)
     },
     openAddModal () {
       this.addModalShow = true
@@ -156,8 +156,8 @@ export default {
     },
     async onFormSubmit ({ name }) {
       try {
-        const city = await this._fetchCityWeatherByName(name)
-        this.cities.push(city)
+        const city = await api.fetchWeatherByCityName(name)
+        this.citiesWithMeta.push({ city, loading: false })
         this.closeAddModal()
       } catch (e) {
         this._handleError(e)

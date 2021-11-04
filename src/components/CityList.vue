@@ -2,25 +2,29 @@
   <section class="city-list">
     <article
       class="city-list-item"
-      v-for="city in cities"
-      :key="city.name"
+      v-for="cityWithMeta in cities"
+      :key="cityWithMeta.city.name"
     >
       <CityItem
-        :title="city.name"
-        :subtitle="city.country"
-        :weather="city.weather"
-        :temp="city.temp"
-        :humidity="city.humidity"
-        :updated-at-millis="city.updatedAtMillis"
-        :updated-at-formatter="city.formatUpdatedAt"
-        :loading="isReloadingInProcess(city)"
+        :title="cityWithMeta.city.name"
+        :subtitle="cityWithMeta.city.country"
+        :weather="cityWithMeta.city.weather"
+        :temp="cityWithMeta.city.temp"
+        :humidity="cityWithMeta.city.humidity"
+        :updated-at-millis="cityWithMeta.city.updatedAtMillis"
+        :updated-at-formatter="cityWithMeta.city.formatUpdatedAt"
+        :loading="cityWithMeta.loading"
       >
         <template v-slot:actions="{ loading }">
           <div class="city-actions">
-            <BaseButton @click="remove(city)">
+            <BaseButton @click="remove(cityWithMeta)">
               <span>REMOVE</span>
             </BaseButton>
-            <BaseButton @click="reload(city)" :loading="loading" :disabled="loading">
+            <BaseButton
+              @click="reload(cityWithMeta)"
+              :loading="loading"
+              :disabled="loading"
+            >
               <span>RELOAD</span>
             </BaseButton>
           </div>
@@ -44,21 +48,14 @@ export default {
     cities: {
       type: Array,
       required: true
-    },
-    reloadingCities: {
-      type: Array,
-      default: () => []
     }
   },
   methods: {
-    isReloadingInProcess (city) {
-      return this.reloadingCities.some(cn => cn.toLowerCase() === city.name.toLowerCase())
+    remove (cityWithMeta) {
+      this.$emit('removeCity', cityWithMeta)
     },
-    remove (city) {
-      this.$emit('remove', city)
-    },
-    reload (city) {
-      this.$emit('reload', city)
+    reload (cityWithMeta) {
+      this.$emit('reloadCity', cityWithMeta)
     }
   }
 }
