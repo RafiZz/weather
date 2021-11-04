@@ -1,38 +1,42 @@
 <template>
-  <div class="city-form">
-    <div class="city-form__title">Choose a city</div>
-    <div class="city-form__subtitle">
+  <div class="city-form-wrapper">
+    <div class="city-form-wrapper__title">Choose a city</div>
+    <div class="city-form-wrapper__subtitle">
       Type city name
       <!-- To find city start typing and pick one from the suggestions -->
     </div>
-    <BaseInput
-      v-model.trim="$v.cityName.$model"
-      placeholder="Search city"
-      :error="cityNameError"
-      @blur="$v.cityName.$touch"
-      :autofocus="true"
-    />
-    <div class="city-form-actions">
-      <BaseButton
-        class="city-form__btn city-form__btn_clear"
-        @click="onClear"
-        :disabled="!cityName"
-      >
-        CLEAR
-      </BaseButton>
-      <BaseButton
-        class="city-form__btn city-form__btn_cancel"
-        @click="onCancel"
-      >
-        CANCEL
-      </BaseButton>
-      <BaseButton
-        @click="onAdd"
-        :disabled="!$v.cityName.$dirty || Boolean(cityNameError)"
-      >
-        ADD
-      </BaseButton>
-    </div>
+    <form class="city-from" @submit.prevent="onSubmit">
+      <BaseInput
+        v-model.trim="$v.cityName.$model"
+        placeholder="Search city"
+        :error="cityNameError"
+        @blur="$v.cityName.$touch"
+        :autofocus="true"
+      />
+      <div class="city-form-actions">
+        <BaseButton
+          type="button"
+          class="city-form__btn city-form__btn_clear"
+          @click="onClear"
+          :disabled="!cityName"
+        >
+          CLEAR
+        </BaseButton>
+        <BaseButton
+          type="button"
+          class="city-form__btn city-form__btn_cancel"
+          @click="onCancel"
+        >
+          CANCEL
+        </BaseButton>
+        <BaseButton
+          type="submit"
+          :disabled="isAddButtonDisabled"
+        >
+          ADD
+        </BaseButton>
+      </div>
+    </form>
   </div>
 </template>
 
@@ -89,6 +93,9 @@ export default {
         return 'This city already in added'
       }
       return 'Unknown error'
+    },
+    isAddButtonDisabled () {
+      return Boolean(this.cityNameError)
     }
   },
   methods: {
@@ -98,7 +105,11 @@ export default {
     onCancel () {
       this.$emit('cancel')
     },
-    onAdd () {
+    onSubmit () {
+      this.$v.$touch()
+      if (this.$v.$invalid) {
+        return
+      }
       this.$emit('add', { name: this.cityName })
     }
   }
@@ -106,7 +117,7 @@ export default {
 </script>
 
 <style lang="scss">
-.city-form {
+.city-form-wrapper {
   padding: 24px;
   background: #fff;
   border-radius: 6px;
@@ -145,7 +156,9 @@ export default {
     line-height: 24px;
     text-align: left;
   }
+}
 
+.city-form {
   &-actions {
     display: flex;
     margin-top: 140px;
