@@ -2,13 +2,12 @@
   <section class="location">
     <h4 class="location__title">Watch weather in your current location</h4>
     <CityItem
-      :title="`${city.name}, ${city.countryCode.toUpperCase()}`"
-      subtitle="Your current location"
-      :weather="city.weather"
-      :temp="city.temp"
-      :humidity="city.humidity"
-      :updated-at-millis="city.updatedAtMillis"
-      :updated-at-formatter="city.formatUpdatedAt"
+      :title="title"
+      :subtitle="subtitle"
+      :weather="weather"
+      :temp="temp"
+      :humidity="humidity"
+      :updated-at-millis="updatedAtMillis"
       :loading="loading"
     >
       <template v-slot:actions="{ loading }">
@@ -25,12 +24,34 @@
 <script>
 import CityItem from './CityItem.vue'
 import BaseButton from './BaseButton.vue'
-import { City } from '@/types/city'
 
 export default {
   name: 'LocationCityItem',
   props: {
-    city: City,
+    title: {
+      type: String,
+      required: true
+    },
+    subtitle: {
+      type: String,
+      required: true
+    },
+    weather: {
+      type: String,
+      required: true
+    },
+    temp: {
+      type: [String, Number],
+      required: true
+    },
+    humidity: {
+      type: [String, Number],
+      required: true
+    },
+    updatedAtMillis: {
+      type: Number,
+      required: true
+    },
     loading: {
       type: Boolean,
       default: false

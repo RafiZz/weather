@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { DateTime } from 'luxon'
-import { City } from '../types/city'
 
 class OpenWeatherMapAPI {
   static baseURL = 'http://api.openweathermap.org/data/2.5/weather'
@@ -18,14 +17,14 @@ class OpenWeatherMapAPI {
   }
 
   static _normalizeResponseData (responseData) {
-    return new City({
+    return {
       name: responseData.name,
       countryCode: responseData.sys.country,
       weather: responseData.weather[0].main,
       temp: Math.round(responseData.main.temp),
       humidity: responseData.main.humidity,
       updatedAtMillis: DateTime.now().toMillis()
-    })
+    }
   }
 
   _request (params) {

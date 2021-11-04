@@ -1,4 +1,4 @@
-import { City } from '../types/city'
+import { CityHelper } from '../utils/cityHelper'
 
 class CitiesLocalStorageDB {
   static _locationCityKey = 'locationCity'
@@ -13,11 +13,14 @@ class CitiesLocalStorageDB {
     if (!json) {
       return null
     }
-    return City.fromObject(JSON.parse(json))
+    const data = JSON.parse(json)
+    CityHelper.validateCityObject(data)
+    return data
   }
 
   async setLocationCity (city) {
-    const json = JSON.stringify(city.toObject())
+    CityHelper.validateCityObject(city)
+    const json = JSON.stringify(city)
     localStorage.setItem(CitiesLocalStorageDB._locationCityKey, json)
   }
 
@@ -31,16 +34,18 @@ class CitiesLocalStorageDB {
       return []
     }
     const arr = JSON.parse(json)
-    return arr.map(City.fromObject)
+    arr.forEach(c => CityHelper.validateCityObject(c))
+    return arr
   }
 
   async setCities (cities) {
-    const arr = cities.map(c => c.toObject())
-    const json = JSON.stringify(arr)
+    cities.forEach(c => CityHelper.validateCityObject(c))
+    const json = JSON.stringify(cities)
     localStorage.setItem(CitiesLocalStorageDB._citiesKey, json)
   }
 
   async setCity (city) {
+    CityHelper.validateCityObject(city)
     const cities = await this.getCities()
     const cityIndex = cities.findIndex(c => c.name === city.name)
     if (cityIndex) {

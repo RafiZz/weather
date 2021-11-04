@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { CityHelper } from '../utils/cityHelper'
+
 export default {
   name: 'CityItem',
   props: {
@@ -58,7 +60,7 @@ export default {
     },
     updatedAtFormatter: {
       type: Function,
-      required: true
+      default: CityHelper.formatUpdatedAt
     },
     interval: {
       type: Number,
@@ -77,7 +79,10 @@ export default {
   },
   computed: {
     readableDuration () {
-      return this.updatedAtFormatter(this.currentDate)
+      return this.updatedAtFormatter({
+        now: this.currentDate,
+        updated: this.updatedAtMillis
+      })
     }
   },
   watch: {

@@ -7,12 +7,11 @@
     >
       <CityItem
         :title="cityWithMeta.city.name"
-        :subtitle="cityWithMeta.city.country"
+        :subtitle="getCountryNameByCode(cityWithMeta.city.countryCode)"
         :weather="cityWithMeta.city.weather"
         :temp="cityWithMeta.city.temp"
         :humidity="cityWithMeta.city.humidity"
         :updated-at-millis="cityWithMeta.city.updatedAtMillis"
-        :updated-at-formatter="cityWithMeta.city.formatUpdatedAt"
         :loading="cityWithMeta.loading"
       >
         <template v-slot:actions="{ loading }">
@@ -37,6 +36,7 @@
 <script>
 import CityItem from '@/components/CityItem.vue'
 import BaseButton from './BaseButton.vue'
+import { CityHelper } from '../utils/cityHelper'
 
 export default {
   name: 'CityList',
@@ -56,6 +56,9 @@ export default {
     },
     reload (cityWithMeta) {
       this.$emit('reloadCity', cityWithMeta)
+    },
+    getCountryNameByCode (countryCode) {
+      return CityHelper.getCountryByCode(countryCode)
     }
   }
 }

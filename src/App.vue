@@ -4,7 +4,12 @@
     <main class="app-main">
       <LocationCityItem
         v-if="locationCityWithMeta.city"
-        :city="locationCityWithMeta.city"
+        :title="`${locationCityWithMeta.city.name}, ${locationCityWithMeta.city.countryCode.toUpperCase()}`"
+        subtitle="Your current location"
+        :weather="locationCityWithMeta.city.weather"
+        :temp="locationCityWithMeta.city.temp"
+        :humidity="locationCityWithMeta.city.humidity"
+        :updated-at-millis="locationCityWithMeta.city.updatedAtMillis"
         :loading="locationCityWithMeta.loading"
         @reload="onReloadLocationCity"
       />
